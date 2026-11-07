@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-starter-python"
+version = "1.0.0"
+description = "Simple voice AI assistant built with LiveKit Agents for Python"
+requires-python = ">=3.10, <3.15"
+
+dependencies = [
+    "livekit-agents[bey,google]~=1.8",
+    "livekit-plugins-ai-coustics~=0.3",
+    "python-dotenv",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+]
+
+[tool.uv]
+# yarl 1.24.1 was published with only a cp310 wheel and no sdist, so it can't
+# install on Python 3.11+. Remove this once upstream uploads the remaining wheels.
+# cryptography 49+ dropped macOS x86_64 wheels, forcing a Rust source build on
+# Intel Macs. 48.0.0 is the last release with a universal2 wheel. Remove this
+# once Intel macOS support is no longer needed locally.
+# google-genai 3.x builds a malformed Live API WebSocket URL (empty base URL,
+# v1 instead of v1beta) with livekit-plugins-google 1.8.x. Pin to 2.x.
+constraint-dependencies = ["yarl<1.24", "cryptography<49", "google-genai<3"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "B", "A", "C4", "UP", "SIM", "RUF"]
+ignore = ["E501"]  # Line too long (handled by formatter)
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

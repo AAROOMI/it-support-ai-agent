@@ -1,0 +1,29 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Node
+node_modules/
+.next/
+dist/
+dist-ssr/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Tooling / skills
+.agents/
+.claude/
+.cursor/
+.gemini/
+.mcp.json
