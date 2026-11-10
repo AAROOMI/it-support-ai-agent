@@ -253,5 +253,3 @@
     connect: connectToAgent,
   };
 })();
-EOF
-echo "SDK updated with avatar video rendering"

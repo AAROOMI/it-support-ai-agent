@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Test Page</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .placeholder { text-align: center; color: #888; }
+    .placeholder h1 { font-size: 1.5em; margin-bottom: 8px; }
+    .placeholder p { font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="placeholder">
+    <h1>Test Page</h1>
+    <p>This simulates a client's website. The floating agent appears in the bottom right.</p>
+  </div>
+
+  <script src="burger-agent-sdk.js"></script>
+  <script>
+    BurgerAgent.init({
+      tokenEndpoint: 'http://localhost:8765/api/connection-details',
+      agentName: 'burger-agent',
+      primaryColor: '#e63946',
+      welcomeMessage: 'Hello! Welcome to Stand Up Burger. How can I help you order today?'
+    });
+  </script>
+</body>
+</html>
