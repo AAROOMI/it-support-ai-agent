@@ -7,14 +7,10 @@
  *   <script>
  *     BurgerAgent.init({
  *       tokenEndpoint: 'https://your-server.com/api/connection-details',
+ *       agentName: 'burger-agent',
  *       primaryColor: '#e63946'
  *     });
  *   </script>
- *
- * The SDK connects to a LiveKit room, renders the agent's avatar as a
- * floating video element, publishes the user's microphone, and registers
- * RPC handlers so the agent can drive the host application (navigate,
- * add to cart, show notifications, etc.).
  */
 (function() {
   'use strict';
@@ -31,7 +27,6 @@
   let room = null;
   let agentConnected = false;
 
-  // Inject styles
   function injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
@@ -41,7 +36,7 @@
       #ba-avatar-container.listening { border-color: #28a745; animation: ba-pulse 1.5s infinite; }
       #ba-avatar-container.speaking { border-color: #007bff; }
       #ba-avatar-container.connecting { border-color: #ffc107; }
-      #ba-avatar-video { width: 100%; height: 100%; object-fit: cover; }
+      #ba-avatar-video { width: 100%; height: 100%; object-fit: cover; display: none; }
       #ba-avatar-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white; }
       @keyframes ba-pulse { 0%,100% { box-shadow: 0 4px 16px rgba(0,0,0,0.3); } 50% { box-shadow: 0 4px 24px rgba(40,167,69,0.6); } }
       #ba-panel { display: none; position: fixed; bottom: 150px; right: 20px; width: 380px; max-height: 480px; background: white; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); overflow: hidden; flex-direction: column; }
@@ -140,6 +135,8 @@
   async function connectToAgent() {
     const status = document.getElementById('ba-status');
     const container = document.getElementById('ba-avatar-container');
+    const videoEl = document.getElementById('ba-avatar-video');
+    const fallback = document.getElementById('ba-avatar-fallback');
     status.textContent = 'Connecting...';
     container.classList.add('connecting');
 
@@ -148,63 +145,13 @@
       const data = await resp.json();
 
       room = new LivekitClient.Room();
-      await room.connect(data.serverUrl, data.participantToken);
 
-      await room.localParticipant.setMicrophoneEnabled(true);
+      try {
+          await room.connect(data.serverUrl, data.participantToken, { autoSubscribe: false });
+        } catch (connErr) {
+        throw connErr;
+      }
 
-      // RPC handlers
-      room.localParticipant.registerRpcMethod('client.showNotification', async (rpcData) => {
-        const payload = JSON.parse(rpcData.payload);
-        if (payload.type === 'item_added') {
-          showToast(payload.item + ' added to cart', 'green');
-          if (payload.cart) updateCart(payload.cart);
-        } else if (payload.type === 'cart_updated') {
-          if (payload.cart) updateCart(payload.cart);
-        } else if (payload.type === 'checkout_ready') {
-          showToast('Order ready! Opening checkout...', 'blue');
-          if (payload.url) window.open(payload.url, '_blank');
-          if (payload.cart) updateCart(payload.cart);
-        } else if (payload.type === 'unblock_user') {
-          showToast('User ' + payload.username + ' unblocked', 'green');
-        } else if (payload.type === 'send_email') {
-          showToast('Email sent to ' + payload.email_address, 'blue');
-        }
-        return 'OK';
-      });
-
-      room.localParticipant.registerRpcMethod('client.navigate', async (rpcData) => {
-        const payload = JSON.parse(rpcData.payload);
-        if (payload.page) window.location.href = payload.page;
-        return 'OK';
-      });
-
-      // Subscribe to agent audio + avatar video
-      room.on('trackSubscribed', (track, publication, participant) => {
-        if (participant.identity.startsWith('agent-') || participant.identity === 'bey-avatar-agent') {
-          if (track.kind === 'audio') {
-            const audioEl = document.createElement('audio');
-            audioEl.autoplay = true;
-            track.attach(audioEl);
-            document.body.appendChild(audioEl);
-          } else if (track.kind === 'video') {
-            const videoEl = document.getElementById('ba-avatar-video');
-            const fallback = document.getElementById('ba-avatar-fallback');
-            track.attach(videoEl);
-            videoEl.style.display = 'block';
-            if (fallback) fallback.style.display = 'none';
-          }
-        }
-      });
-
-      room.on('participantConnected', (participant) => {
-        if (participant.identity.startsWith('agent-') || participant.identity === 'bey-avatar-agent') {
-          agentConnected = true;
-          status.textContent = 'Connected - speak now!';
-          container.classList.remove('connecting');
-          container.classList.add('listening');
-          addMessage(config.welcomeMessage, true);
-        }
-      });
 
       status.textContent = 'Connected - speak now!';
       container.classList.remove('connecting');
