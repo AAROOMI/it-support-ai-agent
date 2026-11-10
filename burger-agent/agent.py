@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from livekit import agents
 from livekit.agents import (
+    APIConnectOptions,
     Agent,
     AgentServer,
     AgentSession,
@@ -13,7 +14,11 @@ from livekit.agents import (
     BuiltinAudioClip,
     room_io,
 )
-from livekit.plugins import ai_coustics, google
+from livekit.agents.utils import images
+from livekit.agents.voice.agent_session import VoiceActivityVideoSampler
+from livekit.plugins import ai_coustics, bey, google
+
+from google.genai import types as genai_types
 
 from prompts import ORDERING_INSTRUCTIONS
 from tools import (
@@ -58,8 +63,31 @@ async def entrypoint(ctx: agents.JobContext):
         llm=google.realtime.RealtimeModel(
             model=os.getenv("GEMINI_MODEL", "gemini-3.8-live"),
             voice=os.getenv("GEMINI_VOICE", "Puck"),
+            media_resolution=genai_types.MediaResolution.MEDIA_RESOLUTION_HIGH,
+            image_encode_options=images.EncodeOptions(
+                format="JPEG",
+                quality=90,
+                resize_options=images.ResizeOptions(
+                    width=1536, height=1536, strategy="scale_aspect_fit"
+                ),
+            ),
         ),
+        video_sampler=VoiceActivityVideoSampler(speaking_fps=2.0, silent_fps=1.0),
     )
+
+    # Start the Beyond Presence avatar
+    avatar_id = os.getenv("BEY_AVATAR_ID")
+    if avatar_id and os.getenv("BEY_API_KEY"):
+        livekit_url = os.getenv("LIVEKIT_URL", "")
+        if livekit_url.startswith("https://"):
+            livekit_url = "wss://" + livekit_url[len("https://"):]
+        elif livekit_url.startswith("http://"):
+            livekit_url = "ws://" + livekit_url[len("http://"):]
+        try:
+            avatar = bey.AvatarSession(avatar_id=avatar_id, conn_options=APIConnectOptions(max_retry=0, retry_interval=1.0, timeout=10.0))
+            await avatar.start(session, room=ctx.room, livekit_url=livekit_url)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Beyond Presence avatar unavailable, continuing voice-only: %s", e)
 
     await session.start(
         room=ctx.room,
@@ -91,3 +119,5 @@ async def entrypoint(ctx: agents.JobContext):
 
 if __name__ == "__main__":
     agents.cli.run_app(server)
+EOF
+echo "updated agent.py with avatar support"

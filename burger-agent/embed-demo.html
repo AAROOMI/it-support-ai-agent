@@ -18,15 +18,12 @@
     .item .price { color: #e63946; font-weight: bold; font-size: 1.1em; }
     .item .cal { color: #999; font-size: 12px; }
     .item .desc { color: #666; font-size: 13px; margin: 8px 0; }
-    .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 20px; box-shadow: 0 -2px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 9998; }
-    .cart-bar .total { font-weight: bold; font-size: 1.1em; }
-    .cart-bar button { background: #e63946; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; }
   </style>
 </head>
 <body>
   <div class="hero">
     <h1>🍔 Stand Up Burger</h1>
-    <p>Order online for pickup or delivery. Click the assistant button to order by voice!</p>
+    <p>Order online for pickup or delivery. Click the avatar button to order by voice!</p>
   </div>
 
   <div class="menu">
@@ -69,24 +66,17 @@
 
   <div style="height:80px;"></div>
 
-  <div class="cart-bar">
-    <span class="total">Cart: <span id="cart-total">0.00 SAR</span></span>
-    <button onclick="window.open('https://order.qoodz.app/menu/2260?table=7549&pickupType=pickup&branch=2545', '_blank')">Checkout on Website</button>
-  </div>
-
-  <!-- SDK: just one script tag to embed the agent -->
+  <!-- SDK: one script tag embeds the floating avatar agent -->
   <script src="burger-agent-sdk.js"></script>
   <script>
     BurgerAgent.init({
-      livekitUrl: 'wss://test123-t2xtvzt2.livekit.cloud',
       tokenEndpoint: 'http://localhost:8765/api/connection-details',
       agentName: 'burger-agent',
       primaryColor: '#e63946',
-      buttonText: '🍔',
       welcomeMessage: 'Hello! Welcome to Stand Up Burger. How can I help you order today?'
     });
   </script>
 </body>
 </html>
 EOF
-echo "created embed demo"
+echo "updated embed demo"
