@@ -119,5 +119,3 @@ async def entrypoint(ctx: agents.JobContext):
 
 if __name__ == "__main__":
     agents.cli.run_app(server)
-EOF
-echo "updated agent.py with avatar support"
