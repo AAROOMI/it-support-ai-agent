@@ -53,7 +53,7 @@ async def search_menu(context: RunContext, query: str) -> str:
     q = query.lower()
     for cat in MENU_DATA.get("categories", []):
         for p in cat.get("products", []):
-            if q in p["name"].lower() or q in (p.get("description") or "").lower():
+            if q in p["name"].lower() or q in (p.get("description") or "").lower() or q in cat["name"].lower():
                 status = " (SOLD OUT)" if p.get("soldOut") else ""
                 results.append(f"  - {p['name']}: {p['price']} SAR{status} [{cat['name']}]")
     if not results:

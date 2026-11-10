@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stand Up Burger - Order Online</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9fa; }
+    .hero { background: #e63946; color: white; padding: 40px 20px; text-align: center; }
+    .hero h1 { font-size: 2.5em; margin-bottom: 8px; }
+    .hero p { opacity: 0.9; }
+    .menu { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+    .menu h2 { color: #333; margin: 20px 0 12px; border-bottom: 2px solid #e63946; padding-bottom: 8px; }
+    .items { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+    .item { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .item h3 { color: #333; margin-bottom: 4px; }
+    .item .price { color: #e63946; font-weight: bold; font-size: 1.1em; }
+    .item .cal { color: #999; font-size: 12px; }
+    .item .desc { color: #666; font-size: 13px; margin: 8px 0; }
+    .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 12px 20px; box-shadow: 0 -2px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 9998; }
+    .cart-bar .total { font-weight: bold; font-size: 1.1em; }
+    .cart-bar button { background: #e63946; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <h1>🍔 Stand Up Burger</h1>
+    <p>Order online for pickup or delivery. Click the assistant button to order by voice!</p>
+  </div>
+
+  <div class="menu">
+    <h2>Burgers</h2>
+    <div class="items">
+      <div class="item"><h3>Classic Double Burger</h3><p class="desc">Fresh beef, American cheese, caramelized onions, lettuce</p><p class="cal">460 cal</p><p class="price">22.00 SAR</p></div>
+      <div class="item"><h3>Classic Triple Burger</h3><p class="desc">Fresh beef, American cheese, caramelized onions, lettuce</p><p class="cal">690 cal</p><p class="price">27.00 SAR</p></div>
+      <div class="item"><h3>Special Double Burger</h3><p class="desc">Special sauce, halapeno, grilled tomatoes, American cheese</p><p class="cal">710 cal</p><p class="price">26.00 SAR</p></div>
+      <div class="item"><h3>Special Triple Burger</h3><p class="desc">Special sauce, halapeno, grilled tomatoes, American cheese</p><p class="cal">890 cal</p><p class="price">31.00 SAR</p></div>
+      <div class="item"><h3>Beef Quesadilla</h3><p class="desc">Grilled beef quesadilla</p><p class="cal">620 cal</p><p class="price">19.00 SAR</p></div>
+    </div>
+
+    <h2>Appetizers</h2>
+    <div class="items">
+      <div class="item"><h3>Chicken Wings 6 PCS</h3><p class="cal">249 cal</p><p class="price">14.00 SAR</p></div>
+      <div class="item"><h3>French Fries</h3><p class="cal">224 cal</p><p class="price">7.00 SAR</p></div>
+      <div class="item"><h3>Spicy Crispy Fries</h3><p class="cal">259 cal</p><p class="price">9.00 SAR</p></div>
+      <div class="item"><h3>Fries on The Go</h3><p class="cal">438 cal</p><p class="price">17.00 SAR</p></div>
+    </div>
+
+    <h2>Drinks</h2>
+    <div class="items">
+      <div class="item"><h3>Rabie Juice</h3><p class="price">3.00 SAR</p></div>
+      <div class="item"><h3>Cola</h3><p class="price">4.00 SAR</p></div>
+      <div class="item"><h3>Citrus Drink</h3><p class="price">4.00 SAR</p></div>
+      <div class="item"><h3>Sprite</h3><p class="price">4.00 SAR</p></div>
+      <div class="item"><h3>Diet Cola</h3><p class="price">4.00 SAR</p></div>
+      <div class="item"><h3>Arwa Water</h3><p class="price">2.00 SAR</p></div>
+    </div>
+
+    <h2>Add-ons (Sauces)</h2>
+    <div class="items">
+      <div class="item"><h3>Burger Sauce</h3><p class="price">3.00 SAR</p></div>
+      <div class="item"><h3>Special Sauce</h3><p class="price">3.00 SAR</p></div>
+      <div class="item"><h3>Smoked BBQ Sauce</h3><p class="price">3.00 SAR</p></div>
+      <div class="item"><h3>Cheese Sauce</h3><p class="price">3.00 SAR</p></div>
+      <div class="item"><h3>Spicy Buffalo Sauce</h3><p class="price">3.00 SAR</p></div>
+    </div>
+  </div>
+
+  <div style="height:80px;"></div>
+
+  <div class="cart-bar">
+    <span class="total">Cart: <span id="cart-total">0.00 SAR</span></span>
+    <button onclick="window.open('https://order.qoodz.app/menu/2260?table=7549&pickupType=pickup&branch=2545', '_blank')">Checkout on Website</button>
+  </div>
+
+  <!-- SDK: just one script tag to embed the agent -->
+  <script src="burger-agent-sdk.js"></script>
+  <script>
+    BurgerAgent.init({
+      livekitUrl: 'wss://test141-smeqvx92.livekit.cloud',
+      tokenEndpoint: 'http://localhost:8765/api/connection-details',
+      agentName: 'burger-agent',
+      primaryColor: '#e63946',
+      buttonText: '🍔',
+      welcomeMessage: 'Hello! Welcome to Stand Up Burger. How can I help you order today?'
+    });
+  </script>
+</body>
+</html>
+EOF
+echo "created embed demo"
