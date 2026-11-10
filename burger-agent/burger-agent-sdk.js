@@ -6,7 +6,7 @@
  *   <script src="burger-agent-sdk.js"></script>
  *   <script>
  *     BurgerAgent.init({
- *       livekitUrl: 'wss://test141-smeqvx92.livekit.cloud',
+ *       livekitUrl: 'wss://test123-t2xtvzt2.livekit.cloud',
  *       tokenEndpoint: 'https://your-backend.com/api/connection-details',
  *       agentName: 'burger-agent',
  *       primaryColor: '#e63946',
