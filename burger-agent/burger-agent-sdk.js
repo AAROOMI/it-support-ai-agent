@@ -145,13 +145,132 @@
       const data = await resp.json();
 
       room = new LivekitClient.Room();
+      window._lkRoom = room;
+      window['__burgerRoom_' + Date.now()] = room;
+      window.__burgerRoom = room;
+      document.title = 'ROOM_SET_' + room.sid;
+      console.log('ROOM SET, id:', room.sid);
 
-      try {
-          await room.connect(data.serverUrl, data.participantToken, { autoSubscribe: false });
-        } catch (connErr) {
-        throw connErr;
-      }
+      // Register event handlers BEFORE connecting
+      room.on('trackSubscribed', (track, publication, participant) => {
+        console.log('TRACK SUBSCRIBED:', track.kind, 'from', participant.identity);
+        if (participant.identity.startsWith('agent-') || participant.identity === 'bey-avatar-agent') {
+          if (track.kind === 'audio') {
+            const audioEl = document.createElement('audio');
+            audioEl.autoplay = true;
+            track.attach(audioEl);
+            document.body.appendChild(audioEl);
+          } else if (track.kind === 'video') {
+            if (track.mediaStream) {
+              videoEl.srcObject = track.mediaStream;
+              videoEl.style.display = 'block';
+              if (fallback) fallback.style.display = 'none';
+              videoEl.play().catch(function(e) { console.warn('Video play failed:', e); });
+            } else {
+              track.attach(videoEl);
+              videoEl.style.display = 'block';
+              if (fallback) fallback.style.display = 'none';
+            }
+          }
+        }
+      });
 
+      room.on('participantConnected', (participant) => {
+        if (participant.identity.startsWith('agent-') || participant.identity === 'bey-avatar-agent') {
+          agentConnected = true;
+          status.textContent = 'Connected - speak now!';
+          container.classList.remove('connecting');
+          container.classList.add('listening');
+          addMessage(config.welcomeMessage, true);
+          // Check for existing tracks
+          participant.trackPublications.forEach((pub) => {
+            if (pub.track && pub.isSubscribed) {
+              if (pub.track.kind === 'video') {
+                pub.track.attach(videoEl);
+                videoEl.style.display = 'block';
+                if (fallback) fallback.style.display = 'none';
+              } else if (pub.track.kind === 'audio') {
+                const audioEl = document.createElement('audio');
+                audioEl.autoplay = true;
+                pub.track.attach(audioEl);
+                document.body.appendChild(audioEl);
+              }
+            } else if (pub.kind === 'video' || pub.kind === 'audio') {
+              pub.setSubscribed(true);
+            }
+          });
+        }
+      });
+
+      // Poll for avatar video track every second for 30 seconds
+      let avatarPollCount = 0;
+      const avatarPoll = setInterval(function() {
+        avatarPollCount++;
+        room.remoteParticipants.forEach((participant) => {
+          participant.trackPublications.forEach((pub) => {
+            if (pub.kind === 'video' && pub.track) {
+              if (!pub.isSubscribed) pub.setSubscribed(true);
+              if (videoEl.srcObject !== pub.track.mediaStream && pub.track.mediaStream) {
+                videoEl.srcObject = pub.track.mediaStream;
+                videoEl.style.display = 'block';
+                if (fallback) fallback.style.display = 'none';
+              }
+              if (videoEl.srcObject) {
+                videoEl.play().catch(function(e) { console.warn('Video play failed:', e); });
+              }
+            }
+          });
+        });
+        if (avatarPollCount > 30) clearInterval(avatarPoll);
+      }, 1000);
+
+      // RPC handlers
+      room.localParticipant.registerRpcMethod('client.showNotification', async (rpcData) => {
+        try {
+          const payload = JSON.parse(rpcData.payload);
+          if (payload.type === 'item_added') {
+            showToast(payload.item + ' added to cart', 'green');
+            if (payload.cart) updateCart(payload.cart);
+          } else if (payload.type === 'cart_updated') {
+            if (payload.cart) updateCart(payload.cart);
+          } else if (payload.type === 'checkout_ready') {
+            showToast('Order ready! Opening checkout...', 'blue');
+            if (payload.url) window.open(payload.url, '_blank');
+            if (payload.cart) updateCart(payload.cart);
+          }
+        } catch (e) { console.warn('RPC parse error:', e); }
+        return 'OK';
+      });
+
+      room.localParticipant.registerRpcMethod('client.navigate', async (rpcData) => {
+        try {
+          const payload = JSON.parse(rpcData.payload);
+          if (payload.page) window.location.href = payload.page;
+        } catch (e) { console.warn('RPC parse error:', e); }
+        return 'OK';
+      });
+
+      await room.connect(data.serverUrl, data.participantToken);
+
+      // Check for already-subscribed tracks
+      room.remoteParticipants.forEach((participant) => {
+        if (participant.identity.startsWith('agent-') || participant.identity === 'bey-avatar-agent') {
+          participant.trackPublications.forEach((pub) => {
+            if (pub.track && pub.isSubscribed) {
+              if (pub.track.kind === 'video') {
+                pub.track.attach(videoEl);
+                videoEl.style.display = 'block';
+                if (fallback) fallback.style.display = 'none';
+              } else if (pub.track.kind === 'audio') {
+                const audioEl = document.createElement('audio');
+                audioEl.autoplay = true;
+                pub.track.attach(audioEl);
+                document.body.appendChild(audioEl);
+              }
+            }
+          });
+        }
+      });
 
       status.textContent = 'Connected - speak now!';
       container.classList.remove('connecting');
@@ -161,6 +280,7 @@
       console.error('Connection error:', err);
       status.textContent = 'Connection failed: ' + err.message;
       container.classList.remove('connecting');
+      room = null;
     }
   }
 
