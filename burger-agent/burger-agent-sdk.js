@@ -161,16 +161,10 @@
             track.attach(audioEl);
             document.body.appendChild(audioEl);
           } else if (track.kind === 'video') {
-            if (track.mediaStream) {
-              videoEl.srcObject = track.mediaStream;
-              videoEl.style.display = 'block';
-              if (fallback) fallback.style.display = 'none';
-              videoEl.play().catch(function(e) { console.warn('Video play failed:', e); });
-            } else {
-              track.attach(videoEl);
-              videoEl.style.display = 'block';
-              if (fallback) fallback.style.display = 'none';
-            }
+            track.attach(videoEl);
+            videoEl.style.display = 'block';
+            if (fallback) fallback.style.display = 'none';
+            videoEl.play().catch(function(e) {});
           }
         }
       });
@@ -210,14 +204,10 @@
           participant.trackPublications.forEach((pub) => {
             if (pub.kind === 'video' && pub.track) {
               if (!pub.isSubscribed) pub.setSubscribed(true);
-              if (videoEl.srcObject !== pub.track.mediaStream && pub.track.mediaStream) {
-                videoEl.srcObject = pub.track.mediaStream;
-                videoEl.style.display = 'block';
-                if (fallback) fallback.style.display = 'none';
-              }
-              if (videoEl.srcObject) {
-                videoEl.play().catch(function(e) { console.warn('Video play failed:', e); });
-              }
+              pub.track.attach(videoEl);
+              videoEl.style.display = 'block';
+              if (fallback) fallback.style.display = 'none';
+              videoEl.play().catch(function(e) {});
             }
           });
         });
